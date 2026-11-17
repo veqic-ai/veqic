@@ -8,6 +8,11 @@ if not os.path.exists(DATA_PATH):
     urllib.request.urlretrieve(URL, DATA_PATH)
 print('data ready:', DATA_PATH)
 
+# 1) تثبيت Unsloth (غير مثبتة مسبقًا في صورة Kaggle)
+import subprocess
+subprocess.run(["pip", "install", "-q", "unsloth", "datasets", "trl"], check=True)
+print("unsloth installed")
+
 from unsloth import FastLanguageModel
 from unsloth.chat_templates import get_chat_template
 from datasets import load_dataset
