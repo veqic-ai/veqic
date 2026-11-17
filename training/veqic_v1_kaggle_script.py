@@ -36,7 +36,10 @@ dataset = load_dataset("json", data_files=DATA_PATH, split="train")
 dataset = dataset.filter(lambda x: x["type"] == "sft")
 
 def to_text(example):
-    return {"text": tokenizer.apply_chat_template(example["messages"], tokenize=False, add_generation_prompt=False)}
+    # نص فقط: نشيل أي رمز صورة لأننا ندرب على نص فقط (Gemma 4 متعدد الوسائط)
+    text = tokenizer.apply_chat_template(example["messages"], tokenize=False, add_generation_prompt=False)
+    text = text.replace("<start_of_image>", "").replace("<image>", "").replace("<end_of_image>", "")
+    return {"text": text}
 
 dataset = dataset.map(to_text)
 print("training examples:", len(dataset))
@@ -58,7 +61,8 @@ trainer = SFTTrainer(
         logging_steps=5,
         save_steps=50,
         output_dir="veqic-v1-checkpoints",
-        fp16=not torch.cuda.is_bf16_supported(),
+        fp16=not torch.cuda.is_bf16_supported(),  # T4 يدعم fp16 فقط
+        dataset_kwargs={"skip_prepare_dataset": True},  # تخطي معالجة الصور — نص فقط
     ),
 )
 trainer.train()
